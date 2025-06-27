@@ -1,0 +1,28 @@
+{
+  "name": "healthify-platform",
+  "version": "1.0.0",
+  "description": "Healthify Digital Health Platform - FHIR-compliant telemedicine solution",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:services\" \"npm run dev:frontend\"",
+    "dev:services": "echo 'Services will start here'",
+    "dev:frontend": "echo 'Frontend will start here'",
+    "setup": "bash scripts/setup.sh",
+    "test": "echo 'Tests will run here'",
+    "lint": "echo 'Linting will run here'"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "author": "Healthify Team",
+  "license": "PROPRIETARY"
+}

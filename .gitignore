@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Build outputs
+build/
+dist/
+*/build/
+*/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Healthcare specific
+*.p12
+*.pem
+*.crt
+*.key
+secrets/
+
+# Database
+*.sqlite
+*.db
