@@ -46,6 +46,7 @@ The specific responsibilities and actions for each role are as follows:
 - **Continuous Improvement:** Regularly review and update lessons learned in `docs/scratchpad.md`. Strive for clarity, completeness, and continuous self-review in all work, inspired by John Carmack's engineering discipline.
 
 ### Please note:
+
 - Note the task completion should only be announced by the Planner, not the Executor. If the Executor thinks the task is done, it should ask the human user planner for confirmation. Then the Planner needs to do some cross-checking.
 - Avoid rewriting the entire any documents unless necessary;
 - Avoid deleting records left by other roles; you can append new paragraphs or mark old paragraphs as outdated;

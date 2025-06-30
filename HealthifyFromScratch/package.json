@@ -1,0 +1,58 @@
+{
+  "name": "healthify-platform",
+  "version": "1.0.0",
+  "description": "Healthify Digital Health Platform - FHIR-compliant telemedicine solution",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:services\" \"npm run dev:frontend\"",
+    "dev:services": "concurrently \"npm run dev --workspace=iam-service\" \"npm run dev --workspace=ehr-service\"",
+    "dev:frontend": "concurrently \"npm run dev --workspace=patient-portal\" \"npm run dev --workspace=provider-portal\" \"npm run dev --workspace=admin-portal\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "setup": "npm install && npm run build",
+    "clean": "rm -rf node_modules */node_modules */*/node_modules"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "prettier": "^3.0.0",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "healthcare",
+    "telemedicine",
+    "fhir",
+    "microservices",
+    "react-native",
+    "nodejs"
+  ],
+  "author": "Healthify Team",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "eslint-config-next": "^14.2.5",
+    "next": "^14.2.5",
+    "tailwind-merge": "^2.3.0"
+  }
+}

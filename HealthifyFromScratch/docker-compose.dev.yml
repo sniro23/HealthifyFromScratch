@@ -1,0 +1,222 @@
+version: '3.8'
+
+services:
+  # Database and Infrastructure
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: healthify_dev
+      POSTGRES_USER: healthify
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_MULTIPLE_EXTENSIONS: uuid-ossp,pgcrypto
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U healthify']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile.dev
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./services/api-gateway:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Core Microservices
+  iam-service:
+    build:
+      context: .
+      dockerfile: services/iam-service/Dockerfile.dev
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev_jwt_secret
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    volumes:
+      - ./services/iam-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+
+  ehr-service:
+    build:
+      context: .
+      dockerfile: services/ehr-service/Dockerfile.dev
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_REGION=${AWS_REGION}
+    volumes:
+      - ./services/ehr-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+
+  appointment-service:
+    build:
+      context: .
+      dockerfile: services/appointment-service/Dockerfile.dev
+    ports:
+      - '3003:3003'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+    volumes:
+      - ./services/appointment-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+
+  prescription-service:
+    build:
+      context: .
+      dockerfile: services/prescription-service/Dockerfile.dev
+    ports:
+      - '3004:3004'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+    volumes:
+      - ./services/prescription-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+      - ehr-service
+
+  communication-service:
+    build:
+      context: .
+      dockerfile: services/communication-service/Dockerfile.dev
+    ports:
+      - '3005:3005'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./services/communication-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+      - iam-service
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: services/billing-service/Dockerfile.dev
+    ports:
+      - '3006:3006'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - PAYHERE_MERCHANT_ID=${PAYHERE_MERCHANT_ID}
+      - PAYHERE_SECRET=${PAYHERE_SECRET}
+    volumes:
+      - ./services/billing-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+
+  content-service:
+    build:
+      context: .
+      dockerfile: services/content-service/Dockerfile.dev
+    ports:
+      - '3007:3007'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+    volumes:
+      - ./services/content-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile.dev
+    ports:
+      - '3008:3008'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+    volumes:
+      - ./services/analytics-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+
+  evercare-service:
+    build:
+      context: .
+      dockerfile: services/evercare-service/Dockerfile.dev
+    ports:
+      - '3009:3009'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://healthify:dev_password@postgres:5432/healthify_dev
+    volumes:
+      - ./services/evercare-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - iam-service
+      - ehr-service
+      - appointment-service
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: healthify-network
